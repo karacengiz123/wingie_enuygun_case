@@ -2,93 +2,20 @@
 
 namespace App\Repository;
 
-use App\Repository\DeveloperRepositoryContract;
 use App\Entity\Developer;
-use App\Entity\Task;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Mapping;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * Class DeveloperRepository
- * @package App\Infrastructure\Repository
+ * @method Developer|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Developer|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Developer[]    findAll()
+ * @method Developer[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DeveloperRepository extends EntityRepository implements DeveloperRepositoryContract
+class DeveloperRepository extends ServiceEntityRepository
 {
-    /** @var EntityManagerInterface */
-    protected EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager, Mapping\ClassMetadata $class)
+    public function __construct(ManagerRegistry $registry)
     {
-        $this->entityManager = $entityManager;
-        parent::__construct($entityManager, $class);
+        parent::__construct($registry, Developer::class);
     }
-
-    /**
-     * @return array
-     */
-    public function getAll()
-    {
-        return $this->findAll();
-    }
-
-    /**
-     * @return Developer|object|null
-     */
-    public function getFreeDeveloper()
-    {
-        return $this->findOneBy([], ['estimated' => 'ASC']);
-    }
-
-    /**
-     * @param Task $task
-     * @return Developer|object|null
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function assignTask(Task $task)
-    {
-        $developer = $this->getFreeDeveloper();
-
-        $developer->setEstimated(
-            $developer->getEstimated() + ($task->getRealizeEstimate() / $developer->getLevel())
-        );
-
-        $this->save($developer);
-
-        return $developer;
-    }
-
-    /**
-     * @param Developer $developer
-     * @param Task $task
-     * @return Developer|object|null
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function deAssignTask(Developer $developer, Task $task)
-    {
-        $developer->setEstimated(
-            ($developer->getEstimated() - ($task->getRealizeEstimate()) * $developer->getLevel())
-        );
-
-        $this->save($developer);
-
-        return $developer;
-    }
-
-    /**
-     * @param Developer $developer
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function save(Developer $developer)
-    {
-        $this->_em->persist($developer);
-        $this->_em->flush();
-    }
-
 }

@@ -30,11 +30,6 @@ class Developer
     private $level;
 
     /**
-     * @ORM\Column(type="float")
-     */
-    private $estimated;
-
-    /**
      * @ORM\OneToMany(targetEntity=Task::class, mappedBy="developer")
      */
     private $tasks;
@@ -42,6 +37,11 @@ class Developer
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 
     public function getId(): ?int
@@ -73,18 +73,6 @@ class Developer
         return $this;
     }
 
-    public function getEstimated(): ?float
-    {
-        return $this->estimated;
-    }
-
-    public function setEstimated(float $estimated): self
-    {
-        $this->estimated = $estimated;
-
-        return $this;
-    }
-
     /**
      * @return Collection|Task[]
      */
@@ -105,8 +93,8 @@ class Developer
 
     public function removeTask(Task $task): self
     {
-        if ($this->tasks->contains($task)) {
-            $this->tasks->removeElement($task);
+        if ($this->tasks->removeElement($task)) {
+            // set the owning side to null (unless already changed)
             if ($task->getDeveloper() === $this) {
                 $task->setDeveloper(null);
             }

@@ -2,16 +2,12 @@
 
 namespace App\Repository;
 
-use App\Repository\TaskRepositoryContract;
-use App\Exception\InvalidArgumentException;
-use App\Entity\Task;
+use App\Decorator\TaskHandleV1;
+use App\Decorator\TaskHandleV2;
 use App\Entity\Developer;
+use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -20,48 +16,63 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Task[]    findAll()
  * @method Task[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-
-/**
- * Class TaskRepository
- * @package App\Repository
- */
-class TaskRepository extends EntityRepository implements TaskRepositoryContract
+class TaskRepository extends ServiceEntityRepository
 {
-    /** @var EntityManagerInterface */
-    protected EntityManagerInterface $entityManager;
-
     /**
-     * TaskRepository constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param ClassMetadata $class
+     * @var ManagerRegistry
      */
-    public function __construct(EntityManagerInterface $entityManager, ClassMetadata $class)
+    private ManagerRegistry $registry;
+    /**
+     * @var EntityManagerInterface
+     */
+    private EntityManagerInterface $em;
+    /**
+     * @var TaskHandleV1
+     */
+    private TaskHandleV1 $taskHandleV1;
+    /**
+     * @var TaskHandleV2
+     */
+    private TaskHandleV2 $taskHandleV2;
+
+    public function __construct(ManagerRegistry $registry, EntityManagerInterface $em,TaskHandleV1 $taskHandleV1,TaskHandleV2 $taskHandleV2)
     {
-        $this->entityManager = $entityManager;
-        parent::__construct($entityManager, $class);
+        parent::__construct($registry, Task::class);
+        $this->registry = $registry;
+        $this->em = $em;
+        $this->taskHandleV1 = $taskHandleV1;
+        $this->taskHandleV2 = $taskHandleV2;
     }
-
-    /**
-     * @param Task $task
-     * @param Developer $developer
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws InvalidArgumentException
-     */
-    public function assignDeveloper(Task $task, Developer $developer)
+    public function createTask()
     {
-        $task->setDeveloper($developer);
-        $this->save($task);
-    }
-
-    /**
-     * @param Task $task
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function save(Task $task)
-    {
-        $this->_em->persist($task);
-        $this->_em->flush();
+        $em = $this->em;
+        $result = ["success" => false, "message" => "No Action Taken"];
+        try {
+            foreach ($this->taskHandleV1->v1ArrayDecorator() as $v1){
+                $newTask = new Task();
+                $newTask
+                    ->setTitle($v1["id"])
+                    ->setLevel($v1["zorluk"])
+                    ->setEstimated($v1["sure"])
+                    ->setDeveloper($em->find(Developer::class,$v1["zorluk"]));
+                $em->persist($newTask);
+            }
+            foreach ($this->taskHandleV2->v2ArrayDecorator() as $v2){
+                $newTask = new Task();
+                $newTask
+                    ->setTitle($v2["task"])
+                    ->setLevel($v2["level"])
+                    ->setEstimated($v2["estimated_duration"])
+                    ->setDeveloper($em->find(Developer::class,$v2["level"]));
+                $em->persist($newTask);
+            }
+            $em->flush();
+            $result["success"] = true;
+            $result["message"] = "success";
+        } catch (\Exception $e) {
+            $result["success"] = false;
+            $result["message"] = $e->getMessage();
+        }
+        return $result;
     }
 }

@@ -12,16 +12,16 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  * Class TaskDecoratorV1
  * @package App\Decorator
  */
-class TaskDecoratorV1 extends TaskDecorator implements TaskDecoratorContractImp
+class TaskDecoratorV1
 {
-    /**
-     * @param array $data
-     * @return Task
-     */
-    public function parseTask(array $data): Task
-    {
-        return new Task(null, $data['id'], $data['sure'], $data['zorluk']);
-    }
+//    /**
+//     * @param array $data
+//     * @return Task
+//     */
+//    public function parseTask(array $data): Task
+//    {
+//        return new Task(null, $data['id'], $data['sure'], $data['zorluk']);
+//    }
 
     /**
      * @return ResponseInterface
@@ -30,6 +30,6 @@ class TaskDecoratorV1 extends TaskDecorator implements TaskDecoratorContractImp
     public function sendRequest(): ResponseInterface
     {
         $http = HttpClient::create();
-        return $http->request('GET', ResourceEnum::RESOURCE_V1);
+        return $http->request('GET', ResourceEnum::mocky_V1);
     }
 }

@@ -13,7 +13,6 @@ class AppFixtures extends Fixture
         for ($i = 1; $i <= 5; $i++) {
             $developer = new Developer();
             $developer->setName('Developer ' . $i);
-            $developer->setEstimated($i*10);
             $developer->setLevel($i);
             $manager->persist($developer);
         }

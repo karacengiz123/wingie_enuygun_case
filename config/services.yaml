@@ -26,17 +26,5 @@ services:
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
 
-    App\Decorator\Contract\TaskDecoratorContract:
-        factory: [ 'App\Decorator\TaskDecoratorFactory', 'createTaskDecoratorManager' ]
-
-    App\Repository\TaskRepository:
-        factory: [ '@doctrine.orm.default_entity_manager', 'getRepository' ]
-        arguments:
-            - App\Entity\Task
-
-    App\Repository\DeveloperRepository:
-        factory: [ '@doctrine.orm.default_entity_manager', 'getRepository' ]
-        arguments:
-            - App\Entity\Developer
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

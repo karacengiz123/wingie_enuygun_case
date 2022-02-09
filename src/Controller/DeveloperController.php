@@ -2,40 +2,37 @@
 
 namespace App\Controller;
 
-use App\Service\Contract\DeveloperServiceContract;
-use App\Service\TaskService;
+use App\Repository\DeveloperRepository;
+use App\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * Class DeveloperController
- * @package App\Controller
- * @Route("/developer")
- */
 class DeveloperController extends AbstractController
 {
-    /** @var DeveloperServiceContract */
-    private DeveloperServiceContract $developerService;
     /**
-     * @var TaskService
+     * @var TaskRepository
      */
-    private TaskService $taskService;
+    private TaskRepository $taskRepository;
+    /**
+     * @var DeveloperRepository
+     */
+    private DeveloperRepository $developerRepository;
 
-    public function __construct(DeveloperServiceContract $developerService,TaskService $taskService)
+    public function __construct(TaskRepository $taskRepository,DeveloperRepository $developerRepository)
     {
-        $this->developerService = $developerService;
-        $this->taskService = $taskService;
+        $this->taskRepository = $taskRepository;
+        $this->developerRepository = $developerRepository;
     }
 
     /**
-     * @Route("/",name="developer_list")
-     * @return Response
+     * @Route("/developer", name="developer")
      */
     public function index(): Response
     {
+        $datas = $this->developerRepository->findAll();
         return $this->render('developer/index.html.twig', [
-            'datas' => $this->developerService->getDevelopers()
+            'datas' => $datas,
         ]);
     }
 }
